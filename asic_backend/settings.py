@@ -35,7 +35,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,25 +66,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'asic_backend.wsgi.application'
 
-# Database - PostgreSQL for production
-if config('DATABASE_URL', default=None):
+# Database
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
 else:
-    # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST'),
-            'PORT': config('DB_PORT'),
+            'NAME': config('DB_NAME', default='asic_school_db'),
+            'USER': config('DB_USER', default='asic_user'),
+            'PASSWORD': config('DB_PASSWORD', default='Asic@2025'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
         }
     }
 
@@ -102,7 +103,7 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -126,13 +127,12 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# CORS Configuration - Add your Vercel domain
+# CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://asic-school.vercel.app/',  # Replace with your Vercel URL
+    'https://asic-school.vercel.app',
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 # Security settings for production
@@ -158,7 +158,7 @@ SIMPLE_JWT = {
 UNFOLD = {
     "SITE_TITLE": "ASIC Mawana",
     "SITE_HEADER": "Anglo Sanskrit Inter College",
-    "SITE_URL": "https://asic-school.vercel.app/",  # Your frontend URL
+    "SITE_URL": "https://asic-school.vercel.app",
     "SITE_SYMBOL": "school",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
@@ -187,7 +187,7 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {"title": "Home", "icon": "dashboard", "link": "/admin/"},
-                    {"title": "View Website", "icon": "public", "link": "https://asic-school.vercel.app/"},
+                    {"title": "View Website", "icon": "public", "link": "https://asic-school.vercel.app"},
                 ],
             },
             {
