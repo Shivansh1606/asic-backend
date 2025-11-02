@@ -1,40 +1,41 @@
 from pathlib import Path
 from decouple import config
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Security settings
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+
+# Add Render.com domain
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 INSTALLED_APPS = [
-    # Unfold Admin - MUST BE BEFORE django.contrib.admin
     'unfold',
     'unfold.contrib.filters',
     'unfold.contrib.forms',
-    
-    # Django Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
-    
-    # Local apps
     'api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this for static files
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,17 +66,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'asic_backend.wsgi.application'
 
-# Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+# Database - PostgreSQL for production
+if config('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT'),
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -91,9 +102,10 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -114,28 +126,23 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# CORS Configuration
+# CORS Configuration - Add your Vercel domain
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:5173',
+    'https://your-app.vercel.app',  # Replace with your Vercel URL
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # JWT Settings
 from datetime import timedelta
@@ -147,18 +154,15 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-# Unfold Admin Configuration - WITH THEME TOGGLE
+# Unfold Admin Configuration
 UNFOLD = {
     "SITE_TITLE": "ASIC Mawana",
     "SITE_HEADER": "Anglo Sanskrit Inter College",
-    "SITE_URL": "http://localhost:3000",
+    "SITE_URL": "https://your-app.vercel.app",  # Your frontend URL
     "SITE_SYMBOL": "school",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
-    
-    # IMPORTANT: Enable Theme Switcher
-    "THEME": None,  # Set to None to enable toggle   
-    # Optimized Colors for Both Modes
+    "THEME": None,
     "COLORS": {
         "primary": {
             "50": "#f0f9ff",
@@ -174,7 +178,6 @@ UNFOLD = {
             "950": "#082f49",
         },
     },
-    
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
@@ -183,16 +186,8 @@ UNFOLD = {
                 "title": "Dashboard",
                 "separator": True,
                 "items": [
-                    {
-                        "title": "Home",
-                        "icon": "dashboard",
-                        "link": "/admin/",
-                    },
-                    {
-                        "title": "View Website",
-                        "icon": "public",
-                        "link": "http://localhost:3000",
-                    },
+                    {"title": "Home", "icon": "dashboard", "link": "/admin/"},
+                    {"title": "View Website", "icon": "public", "link": "https://your-app.vercel.app"},
                 ],
             },
             {
@@ -200,26 +195,10 @@ UNFOLD = {
                 "separator": True,
                 "collapsible": True,
                 "items": [
-                    {
-                        "title": "Gallery",
-                        "icon": "photo_library",
-                        "link": "/admin/api/galleryimage/",
-                    },
-                    {
-                        "title": "Staff Members",
-                        "icon": "people",
-                        "link": "/admin/api/staff/",
-                    },
-                    {
-                        "title": "Management",
-                        "icon": "business",
-                        "link": "/admin/api/managementmember/",
-                    },
-                    {
-                        "title": "Activities",
-                        "icon": "event",
-                        "link": "/admin/api/activity/",
-                    },
+                    {"title": "Gallery", "icon": "photo_library", "link": "/admin/api/galleryimage/"},
+                    {"title": "Staff Members", "icon": "people", "link": "/admin/api/staff/"},
+                    {"title": "Management", "icon": "business", "link": "/admin/api/managementmember/"},
+                    {"title": "Activities", "icon": "event", "link": "/admin/api/activity/"},
                 ],
             },
             {
@@ -227,16 +206,8 @@ UNFOLD = {
                 "separator": True,
                 "collapsible": True,
                 "items": [
-                    {
-                        "title": "Student Registrations",
-                        "icon": "school",
-                        "link": "/admin/api/studentregistration/",
-                    },
-                    {
-                        "title": "Contact Messages",
-                        "icon": "mail",
-                        "link": "/admin/api/contactsubmission/",
-                    },
+                    {"title": "Student Registrations", "icon": "school", "link": "/admin/api/studentregistration/"},
+                    {"title": "Contact Messages", "icon": "mail", "link": "/admin/api/contactsubmission/"},
                 ],
             },
             {
@@ -244,16 +215,8 @@ UNFOLD = {
                 "separator": True,
                 "collapsible": True,
                 "items": [
-                    {
-                        "title": "Users",
-                        "icon": "person",
-                        "link": "/admin/auth/user/",
-                    },
-                    {
-                        "title": "Groups",
-                        "icon": "group",
-                        "link": "/admin/auth/group/",
-                    },
+                    {"title": "Users", "icon": "person", "link": "/admin/auth/user/"},
+                    {"title": "Groups", "icon": "group", "link": "/admin/auth/group/"},
                 ],
             },
         ],
