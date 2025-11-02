@@ -130,7 +130,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://your-app.vercel.app',  # Replace with your Vercel URL
+    'https://asic-school.vercel.app/',  # Replace with your Vercel URL
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -158,7 +158,7 @@ SIMPLE_JWT = {
 UNFOLD = {
     "SITE_TITLE": "ASIC Mawana",
     "SITE_HEADER": "Anglo Sanskrit Inter College",
-    "SITE_URL": "https://your-app.vercel.app",  # Your frontend URL
+    "SITE_URL": "https://asic-school.vercel.app/",  # Your frontend URL
     "SITE_SYMBOL": "school",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
