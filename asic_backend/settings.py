@@ -187,7 +187,7 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {"title": "Home", "icon": "dashboard", "link": "/admin/"},
-                    {"title": "View Website", "icon": "public", "link": "https://your-app.vercel.app"},
+                    {"title": "View Website", "icon": "public", "link": "https://asic-school.vercel.app/"},
                 ],
             },
             {
