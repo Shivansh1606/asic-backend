@@ -17,7 +17,9 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Application definition
 INSTALLED_APPS = [
-    'unfold',  # ✅ ONLY unfold
+    'unfold',  # ✅ KEEP
+    'unfold.contrib.filters',  # ✅ KEEP - Advanced filters
+    'unfold.contrib.forms',  # ✅ KEEP - Better forms
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +32,6 @@ INSTALLED_APPS = [
     'django_filters',
     'api',
 ]
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
